@@ -2,6 +2,7 @@ package com.example.notes.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.NavigationBar
@@ -33,6 +34,13 @@ fun BottomNavigationBar(navController: NavController) {
             selected = navController.currentDestination?.route == "profile",
             onClick = { navController.navigate("profile") }
         )
+        NavigationBarItem(
+            icon = { Icon(Icons.Default.Edit, contentDescription = "NoteOverview") },
+            label = { Text("NoteOverview") },
+            selected = navController.currentDestination?.route == "noteOverview",
+            onClick = { navController.navigate("noteOverview") }
+        )
+
 
     }
 }
