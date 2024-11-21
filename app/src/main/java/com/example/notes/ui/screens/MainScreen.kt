@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.notes.components.BottomNavigationBar
+import com.example.notes.components.MainScreenMap
 import com.example.notes.utils.Screen
 
 @Composable
@@ -67,6 +68,8 @@ fun MainScreen(navController: NavController) {
                 UserInformation(user = user) // Display user information
             }
         }
+
+        MainScreenMap()
     }
 
 }
