@@ -1,8 +1,7 @@
 package com.example.notes.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,20 +13,28 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.navigation.NavController
 import androidx.compose.ui.Alignment
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+
+@SuppressLint("NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteScreen(navController: NavController) {
-    var noteText by remember { mutableStateOf("") } // Eingabe für Notizen
-    var notesList by remember { mutableStateOf(listOf<Pair<String, String>>()) } // Liste der Notizen mit Benutzername
-    var selectedNoteType by remember { mutableStateOf("Daily Note") } // Ausgewählter Notiztyp
-    var isPublic by remember { mutableStateOf(true) } // Schalter für Public/Privat (Standard: Public)
+    var noteText by remember { mutableStateOf("") }
+    var selectedNoteType by remember { mutableStateOf("Daily Note") }
+    var isPublic by remember { mutableStateOf(true) }
     val username = "Cristina Semikina" // Beispiel-Benutzername
+    val db = Firebase.firestore // Firebase Firestore-Referenz
+    val maxNoteLength = 220 // max words
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { },
+                title = { Text("Create Note") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
@@ -45,16 +52,15 @@ fun NoteScreen(navController: NavController) {
                 .padding(16.dp)
                 .fillMaxSize()
         ) {
-            // Auswahl des Notiztyps, Public/Private Text und Schalter in einer Zeile
+            // Auswahl des Notiztyps, Public/Private Text und Schalter
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp) // Abstand zwischen den Elementen
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Dropdown-Menü für Notiztypen
                 var expanded by remember { mutableStateOf(false) }
-                Box(modifier = Modifier.weight(1f)) { // Damit das Dropdown und die anderen Elemente ordentlich nebeneinander passen
+                Box(modifier = Modifier.weight(1f)) {
                     OutlinedButton(
                         onClick = { expanded = true },
                         modifier = Modifier.fillMaxWidth()
@@ -78,25 +84,20 @@ fun NoteScreen(navController: NavController) {
                     }
                 }
 
-                // Füge hier einen kleinen Abstand zwischen Dropdown und Public/Private Schalter ein
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Text "Public/Private"
                 Text(
                     text = if (isPublic) "Public" else "Privat",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
 
-                // Schalter für Public/Privat
                 Switch(
                     checked = isPublic,
                     onCheckedChange = { isPublic = it },
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }
-
-            // "Your Location" Bereich
             Text(
                 text = "Your Location",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -115,7 +116,7 @@ fun NoteScreen(navController: NavController) {
                 ) {
                     Column {
                         Text(
-                            text = "No location selected",
+                            text = "location",
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                         )
                         Text(
@@ -131,7 +132,7 @@ fun NoteScreen(navController: NavController) {
                 }
             }
 
-            // Eingabefeld für die Notiz (größer)
+            // Eingabefeld für die Notiz
             Text(
                 text = "Your Note",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -140,52 +141,66 @@ fun NoteScreen(navController: NavController) {
 
             OutlinedTextField(
                 value = noteText,
-                onValueChange = { noteText = it },
+                onValueChange = { newText ->
+                    // max 220 characters
+                    if (newText.length <= maxNoteLength) {
+                        noteText = newText
+                    }
+                },
                 label = { Text("Write your note here...") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp) // Vergrößerung des Textfelds
+                    .height(200.dp)
             )
 
-            // Button unter dem Notizfeld
+
+            // show how many characters are left
+            Text(
+                text = "${maxNoteLength - noteText.length} characters remaining",
+                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            // Button zum Erstellen der Notiz
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
                     if (noteText.isNotBlank()) {
                         val visibility = if (isPublic) "Public" else "Privat"
-                        notesList = notesList + Pair("$selectedNoteType ($visibility): $noteText", username)
-                        noteText = "" // Eingabe zurücksetzen
+                        //val currentDate = java.time.LocalDateTime.now() // Aktuelles Datum und Uhrzeit
+                        //val formattedDate = currentDate.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                        val noteDate = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(
+                            Date()
+                        )
+
+
+                        // Notiz in Firestore speichern
+                        val noteData = hashMapOf(
+                            "noteText" to noteText,
+                            "type" to selectedNoteType,
+                            "visibility" to visibility,
+                            "username" to username,
+                            "timestamp" to System.currentTimeMillis(),
+                            "date" to noteDate  // save date as string
+                        )
+
+                        db.collection("notes")
+                            .add(noteData)
+                            .addOnSuccessListener {
+                                navController.navigate("noteOverview")
+                            }
+                            .addOnFailureListener { exception ->
+                                println("Error saving note: $exception")
+                            }
+
+                        // Eingabe zurücksetzen
+                        noteText = ""
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Create Note")
-            }
-
-            // Anzeige der Notizen
-            Spacer(modifier = Modifier.height(16.dp))
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(notesList) { (note, user) ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = note,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "By $user",
-                                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
-                            )
-                        }
-                    }
-                }
             }
         }
     }

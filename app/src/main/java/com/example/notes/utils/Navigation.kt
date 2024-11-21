@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.notes.ui.screens.AuthenticationScreen
 import com.example.notes.ui.screens.LoginScreen
 import com.example.notes.ui.screens.MainScreen
+import com.example.notes.ui.screens.NoteOverviewScreen
 import com.example.notes.ui.screens.NoteScreen
 import com.example.notes.ui.screens.ProfileScreen
 import com.example.notes.ui.screens.RegisterScreen
@@ -38,6 +39,9 @@ fun Navigation(){
         }
         composable(route = Screen.Profile.route) {
             ProfileScreen(navController =navController)
+        }
+        composable(route = Screen.NoteOverview.route) {
+            NoteOverviewScreen(navController=navController)
         }
 
     }
