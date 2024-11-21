@@ -47,7 +47,7 @@ fun generateRandomAvatar(): String {
     return "https://api.multiavatar.com/$randomString.svg"
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(navController: NavController) {
