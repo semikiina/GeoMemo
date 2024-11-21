@@ -51,21 +51,31 @@ android {
 }
 
 dependencies {
-    implementation("androidx.compose.material3:material3:1.3.1")
+    // Jetpack Compose Dependencies
+    implementation("androidx.compose.ui:ui:1.5.1") // UI-Komponenten für Jetpack Compose
+    implementation("androidx.compose.material3:material3:1.3.1") // Material Design 3
+    implementation("androidx.compose.foundation:foundation:1.5.1") // Für grundlegende Compose-Komponenten
+    implementation("androidx.compose.ui:ui-tooling-preview:1.5.1") // Für Vorschau von Composables
+    implementation("androidx.compose.material:material-icons-core:1.5.1") // Material Icons
+    implementation("androidx.compose.material:material-icons-extended:1.5.1") // Erweiterte Material Icons
+
+    // Coil - Zum Laden von Bildern (z.B. für das Profilbild)
+    implementation("io.coil-kt:coil-compose:2.3.0")
+    implementation("io.coil-kt:coil-svg:2.3.0")
+
+
+    // Navigation und Firebase
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore.ktx)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.material3.android)
     implementation(libs.androidx.navigation.runtime.ktx)
-    implementation(libs.firebase.auth.ktx)
+
+
+    // Test Dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
