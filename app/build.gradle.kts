@@ -1,9 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.google.gms.google.services)
-
-    id ("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    alias(libs.plugins.google.gms.services)
+    alias(libs.plugins.google.secrets)
 }
 
 android {
@@ -86,6 +85,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation (libs.play.services.maps)
-    implementation(libs.play.services.location)
+    // Maps
+    implementation(libs.google.maps.compose)
+    implementation(libs.google.gms.play.services.location)
+    implementation(libs.google.play.services.maps)
+    implementation (libs.play.services.basement)
 }

@@ -2,11 +2,6 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.jetbrains.kotlin.android) apply false
-    alias(libs.plugins.google.gms.google.services) apply false
-}
-
-buildscript {
-    dependencies {
-        classpath (libs.secrets.gradle.plugin)
-    }
+    alias(libs.plugins.google.gms.services) apply false
+    alias(libs.plugins.google.secrets) apply false
 }

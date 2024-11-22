@@ -1,62 +1,33 @@
 package com.example.notes.components
 
-import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.os.Build
-import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.InspectableModifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.app.ActivityCompat
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.MapView
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
-import kotlin.contracts.contract
-import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.maps.android.compose.GoogleMap
+
+import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.tasks.await
 
 private const val PERMISSION = "android.permission.ACCESS_FINE_LOCATION"
 
-@RequiresApi(Build.VERSION_CODES.S)
+@SuppressLint("InlinedApi")
 @Composable
-fun MainScreenMap(modifier: Modifier = Modifier){
+fun MainScreenMap(){
 
     val context = LocalContext.current
 
-    val location = remember { mutableStateOf(LatLng(0.0, 0.0)) }
-    val client = remember { LocationServices.getFusedLocationProviderClient(context) }
-
-    /*
-    LaunchedEffect(key1 = Unit) {
-        try {
-            val res =
-                client.getCurrentLocation(android.location.LocationRequest.QUALITY_HIGH_ACCURACY, null)
-                    .await()
-            location.value = LatLng(res.latitude, res.longitude)
-        } catch (ex: SecurityException) {
-            Log.v(this::class.qualifiedName, ex.message.toString())
-        }
-    }
-*/
     val granted = remember {
         mutableStateOf(
             PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(
@@ -67,7 +38,7 @@ fun MainScreenMap(modifier: Modifier = Modifier){
     }
 
     val launcher = rememberLauncherForActivityResult(
-        contract = RequestPermission()
+        contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         granted.value = isGranted
     }
@@ -78,29 +49,42 @@ fun MainScreenMap(modifier: Modifier = Modifier){
         }
     }
 
-    val mapView = MapView(context).apply {
-        //onCreate(Bundle())
-        getMapAsync(OnMapReadyCallback { googleMap ->
-            val aarhus = LatLng(56.162939, 10.203921)
-            val aarhus_2 = LatLng(9.162939, 9.203921)
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(aarhus_2, 10f))
-            //googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(9.162939, 9.203921), 10f))
-            //googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(aarhus, 10f))
-        })
+    // MAP VIEW
+
+    //val aarhus = LatLng(56.162939, 10.203921)
+    val prague = LatLng(50.0755, 14.4378)
+
+    val currentLocation = remember { mutableStateOf(prague) }
+    //val locationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val locationClient = LocationServices.getFusedLocationProviderClient(context)
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(
+            currentLocation.value, 15f
+        )
     }
 
-    DisposableEffect(mapView) {
-        mapView.onStart()
-        onDispose {
-            mapView.onStop()
-            mapView.onDestroy()
+    LaunchedEffect(Unit) {
+        if (granted.value) {
+            try {
+                val location = locationClient.getCurrentLocation(
+                    Priority.PRIORITY_HIGH_ACCURACY,
+                    null
+                ).await()
+                currentLocation.value = LatLng(location.latitude, location.longitude)
+
+                // Update the camera position
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                    currentLocation.value,
+                    15f
+                )
+            } catch (e: SecurityException) {
+                Log.e("Location", "Permission not granted: ${e.message}")
+            } catch (e: Exception) {
+                Log.e("Location", "Failed to get location: ${e.message}")
+            }
         }
     }
 
-    AndroidView(
-        factory = {mapView},
-        modifier = modifier
-    ) { view ->
-        view.onResume()
-    }
+    GoogleMap(cameraPositionState=cameraPositionState) {}
 }
