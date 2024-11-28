@@ -1,27 +1,32 @@
 package com.example.notes.components
 
+
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import com.google.android.gms.maps.model.LatLng
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.api.Property
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.CircularBounds
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.android.libraries.places.api.net.SearchNearbyRequest
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
-
-
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.tasks.await
+import java.util.Arrays
+
 
 private const val PERMISSION = "android.permission.ACCESS_FINE_LOCATION"
 
@@ -54,11 +59,9 @@ fun MainScreenMap(){
 
     // MAP VIEW
 
-    //val aarhus = LatLng(56.162939, 10.203921)
     val prague = LatLng(50.0755, 14.4378)
 
     val currentLocation = remember { mutableStateOf(prague) }
-    //val locationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val locationClient = LocationServices.getFusedLocationProviderClient(context)
 
     val cameraPositionState = rememberCameraPositionState {
@@ -89,10 +92,34 @@ fun MainScreenMap(){
         }
     }
 
+    // TODO
+    // 1) Get nearest location from current location
+    // 2)
+
     GoogleMap(
         cameraPositionState=cameraPositionState,
         properties = MapProperties(
             isMyLocationEnabled = true
         )
     ) {}
+
+    val placeFields = Arrays.asList(Place.Field.ID, Place.Field.DISPLAY_NAME)
+    val center = currentLocation.value
+    val circle = CircularBounds.newInstance(center,  /* radius = */100.0)
+
+    val searchNearbyRequest =
+        SearchNearbyRequest.builder(circle, placeFields)
+            .setMaxResultCount(10)
+            .build()
+
+    Places.initialize(context, "AIzaSyDf6eNeqpJGs3GGeBELEKmTF1alM0OaUnQ")
+    val placesClient: PlacesClient = Places.createClient(context)
+
+    placesClient.searchNearby(searchNearbyRequest)
+        .addOnSuccessListener { response ->
+            val places: List<Place> = response.getPlaces()
+            places.forEach{ place ->
+                place.name?.let { Log.i( "PLACE", it.toString()) }
+            }
+        }
 }
