@@ -1,6 +1,7 @@
 package com.example.notes.ui.screens
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,12 +14,16 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.navigation.NavController
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import com.example.notes.data.getNearestPlaces
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.libraries.places.api.model.Place
 
 @SuppressLint("NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,6 +35,28 @@ fun NoteScreen(navController: NavController) {
     val username = "Cristina Semikina" // Beispiel-Benutzername
     val db = Firebase.firestore // Firebase Firestore-Referenz
     val maxNoteLength = 220 // max words
+
+    val context = LocalContext.current
+    var nearestPlace = remember { mutableStateOf(
+        Place.builder()
+            .setDisplayName("INITIAL")
+            .build()
+    ) }
+    val nearestPlaceName = remember { mutableStateOf("TEST") }
+    LaunchedEffect(Unit) {
+        Log.i("Location", "Launched effect get nearest places")
+        val places = getNearestPlaces(context)
+        Log.i("Location", "places count ${places.size}")
+        nearestPlace.value = places[0]
+    }
+    /*
+    LaunchedEffect(key1 = nearestPlace.value) {
+        nearestPlace.value.let {
+            nearestPlaceName.value = it.displayName.toString()
+        }
+    }
+     */
+
 
     Scaffold(
         topBar = {
@@ -120,8 +147,10 @@ fun NoteScreen(navController: NavController) {
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                         )
                         Text(
-                            text = "Please enable location services",
-                            style = MaterialTheme.typography.bodySmall
+                            //text = "Please enable location services",
+                            //text = nearestPlace.displayName,
+                            text = nearestPlace.value.displayName.toString(),
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                     Icon(

@@ -6,11 +6,14 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -27,8 +30,12 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.tasks.await
 import java.util.Arrays
 
+import com.example.notes.data.getCurrentLocation
+import com.example.notes.ui.theme.NotesTheme
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 
-private const val PERMISSION = "android.permission.ACCESS_FINE_LOCATION"
 
 @SuppressLint("InlinedApi")
 @Composable
@@ -36,90 +43,52 @@ fun MainScreenMap(){
 
     val context = LocalContext.current
 
-    val granted = remember {
-        mutableStateOf(
-            PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(
-                context,
-                PERMISSION
-            )
-        )
-    }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        granted.value = isGranted
-    }
-
-    LaunchedEffect(key1 = Unit) {
-        if (!granted.value) {
-            launcher.launch(PERMISSION)
-        }
-    }
-
     // MAP VIEW
+    //val prague = LatLng(50.0755, 14.4378)
+    val london = LatLng(51.5074, -0.1278)
 
-    val prague = LatLng(50.0755, 14.4378)
 
-    val currentLocation = remember { mutableStateOf(prague) }
-    val locationClient = LocationServices.getFusedLocationProviderClient(context)
-
+    val currentLocation = remember { mutableStateOf(london) }
+    LaunchedEffect(Unit) {
+        currentLocation.value = getCurrentLocation(context)
+    }
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
             currentLocation.value, 15f
         )
     }
 
-    LaunchedEffect(Unit) {
-        if (granted.value) {
-            try {
-                val location = locationClient.getCurrentLocation(
-                    Priority.PRIORITY_HIGH_ACCURACY,
-                    null
-                ).await()
-                currentLocation.value = LatLng(location.latitude, location.longitude)
-
-                // Update the camera position
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(
-                    currentLocation.value,
-                    15f
+    LaunchedEffect(key1 = currentLocation.value) {
+        currentLocation.value.let {
+            cameraPositionState.move(
+                CameraUpdateFactory.newLatLngZoom(
+                    it, 15f
                 )
-            } catch (e: SecurityException) {
-                Log.e("Location", "Permission not granted: ${e.message}")
-            } catch (e: Exception) {
-                Log.e("Location", "Failed to get location: ${e.message}")
-            }
+            )
         }
     }
-
-    // TODO
-    // 1) Get nearest location from current location
-    // 2)
 
     GoogleMap(
         cameraPositionState=cameraPositionState,
         properties = MapProperties(
             isMyLocationEnabled = true
+        ),
+
+    ) {
+        Marker(
+            state = MarkerState(
+                position = currentLocation.value
+            )
+
         )
-    ) {}
+    }
+}
 
-    val placeFields = Arrays.asList(Place.Field.ID, Place.Field.DISPLAY_NAME)
-    val center = currentLocation.value
-    val circle = CircularBounds.newInstance(center,  /* radius = */100.0)
+@Preview
+@Composable
+fun MainMapPreview(){
+    NotesTheme {
+        MainScreenMap()
 
-    val searchNearbyRequest =
-        SearchNearbyRequest.builder(circle, placeFields)
-            .setMaxResultCount(10)
-            .build()
-
-    Places.initialize(context, "AIzaSyDf6eNeqpJGs3GGeBELEKmTF1alM0OaUnQ")
-    val placesClient: PlacesClient = Places.createClient(context)
-
-    placesClient.searchNearby(searchNearbyRequest)
-        .addOnSuccessListener { response ->
-            val places: List<Place> = response.getPlaces()
-            places.forEach{ place ->
-                place.name?.let { Log.i( "PLACE", it.toString()) }
-            }
-        }
+    }
 }
