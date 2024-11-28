@@ -15,7 +15,10 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.CameraPosition
+import com.google.api.Property
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+
 
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.tasks.await
@@ -86,5 +89,10 @@ fun MainScreenMap(){
         }
     }
 
-    GoogleMap(cameraPositionState=cameraPositionState) {}
+    GoogleMap(
+        cameraPositionState=cameraPositionState,
+        properties = MapProperties(
+            isMyLocationEnabled = true
+        )
+    ) {}
 }
