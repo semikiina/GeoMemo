@@ -22,7 +22,6 @@ import java.util.Date
 import java.util.Locale
 
 import com.example.notes.data.getNearestPlaces
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.libraries.places.api.model.Place
 
 @SuppressLint("NewApi")
@@ -36,26 +35,20 @@ fun NoteScreen(navController: NavController) {
     val db = Firebase.firestore // Firebase Firestore-Referenz
     val maxNoteLength = 220 // max words
 
+    // to access nearest place from current location
     val context = LocalContext.current
-    var nearestPlace = remember { mutableStateOf(
+    val nearestPlace = remember { mutableStateOf(
         Place.builder()
-            .setDisplayName("INITIAL")
+            .setDisplayName("no name")
+            .setId("no id")
             .build()
     ) }
-    val nearestPlaceName = remember { mutableStateOf("TEST") }
     LaunchedEffect(Unit) {
-        Log.i("Location", "Launched effect get nearest places")
+        //Log.i("Location", "Launched effect get nearest places")
         val places = getNearestPlaces(context)
-        Log.i("Location", "places count ${places.size}")
+        //Log.i("Location", "places count ${places.size}")
         nearestPlace.value = places[0]
     }
-    /*
-    LaunchedEffect(key1 = nearestPlace.value) {
-        nearestPlace.value.let {
-            nearestPlaceName.value = it.displayName.toString()
-        }
-    }
-     */
 
 
     Scaffold(
@@ -147,11 +140,14 @@ fun NoteScreen(navController: NavController) {
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                         )
                         Text(
-                            //text = "Please enable location services",
-                            //text = nearestPlace.displayName,
                             text = nearestPlace.value.displayName.toString(),
                             style = MaterialTheme.typography.bodySmall,
                         )
+                        Text(
+                            text = nearestPlace.value.id.toString(),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+
                     }
                     Icon(
                         imageVector = Icons.Default.LocationOn,
