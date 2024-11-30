@@ -17,7 +17,7 @@ import com.example.notes.ui.screens.RegisterScreen
 fun Navigation(){
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Screen.Authentication.route) {
+    NavHost(navController = navController, startDestination = Screen.Home.route) {
 
         composable(route = Screen.Authentication.route) {
             AuthenticationScreen(navController = navController)
