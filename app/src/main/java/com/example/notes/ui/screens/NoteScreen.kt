@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.navigation.NavController
 import androidx.compose.ui.Alignment
+import com.example.notes.models.Note
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import java.text.SimpleDateFormat
@@ -168,26 +169,35 @@ fun NoteScreen(navController: NavController) {
                 onClick = {
                     if (noteText.isNotBlank()) {
                         val visibility = if (isPublic) "Public" else "Privat"
-                        //val currentDate = java.time.LocalDateTime.now() // Aktuelles Datum und Uhrzeit
-                        //val formattedDate = currentDate.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                         val noteDate = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(
                             Date()
                         )
 
+                        // Ablaufzeit basierend auf Notiztyp berechnen
+                        val expirationTime = when (selectedNoteType) {
+                            //"Daily Note" -> System.currentTimeMillis() + (24 * 60 * 60 * 1000) // 24 h
+                            "Daily Note" -> System.currentTimeMillis() + (1 * 60 * 1000) // 1 Minute for testing
+                            "Weekly Note" -> System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000) // 7 days
+                            "Monthly Note" -> System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000) // 30 days
+                            else -> System.currentTimeMillis()
+                        }
 
                         // Notiz in Firestore speichern
-                        val noteData = hashMapOf(
-                            "noteText" to noteText,
-                            "type" to selectedNoteType,
-                            "visibility" to visibility,
-                            "username" to username,
-                            "timestamp" to System.currentTimeMillis(),
-                            "date" to noteDate  // save date as string
+                        val note = Note(
+                            noteText = noteText,
+                            type = selectedNoteType,
+                            visibility = visibility,
+                            username = username,
+                            timestamp = System.currentTimeMillis(),
+                            date = noteDate,
+                            expirationTime = expirationTime
                         )
 
+                        // Speichern in Firestore
                         db.collection("notes")
-                            .add(noteData)
+                            .add(note)
                             .addOnSuccessListener {
+                                // Erfolgreiches Hinzufügen
                                 navController.navigate("noteOverview")
                             }
                             .addOnFailureListener { exception ->

@@ -60,6 +60,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.5.1") // Material Icons
     implementation("androidx.compose.material:material-icons-extended:1.5.1") // Erweiterte Material Icons
 
+
     // Coil - Zum Laden von Bildern (z.B. für das Profilbild)
     implementation("io.coil-kt:coil-compose:2.3.0")
     implementation("io.coil-kt:coil-svg:2.3.0")
@@ -75,6 +76,8 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.androidx.navigation.runtime.ktx)
 
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.8.0")
 
     // Test Dependencies
     testImplementation(libs.junit)
@@ -90,4 +93,5 @@ dependencies {
     implementation(libs.google.gms.play.services.location)
     implementation(libs.google.play.services.maps)
     implementation (libs.play.services.basement)
+
 }
