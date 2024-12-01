@@ -7,7 +7,9 @@ data class Note(
     val username: String = "",
     val timestamp: Long = 0L,
     val date: String = "",
-    val expirationTime: Long = 0L
+    val expirationTime: Long = 0L,
+    val placeName: String = "",
+    val placeId: String = ""
 ) {
 
 }

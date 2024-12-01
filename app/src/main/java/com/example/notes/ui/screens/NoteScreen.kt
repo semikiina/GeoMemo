@@ -21,7 +21,6 @@ import com.google.firebase.firestore.firestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
 import com.example.notes.data.getNearestPlaces
 import com.google.android.libraries.places.api.model.Place
 
@@ -215,7 +214,9 @@ fun NoteScreen(navController: NavController) {
                             username = username,
                             timestamp = System.currentTimeMillis(),
                             date = noteDate,
-                            expirationTime = expirationTime
+                            expirationTime = expirationTime,
+                            placeName = nearestPlace.value.displayName ?: "Unknown",
+                            placeId = nearestPlace.value.id ?: "Unknown"
                         )
 
                         // Speichern in Firestore
