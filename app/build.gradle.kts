@@ -93,5 +93,6 @@ dependencies {
     implementation(libs.google.gms.play.services.location)
     implementation(libs.google.play.services.maps)
     implementation (libs.play.services.basement)
+    implementation (libs.places)
 
 }
