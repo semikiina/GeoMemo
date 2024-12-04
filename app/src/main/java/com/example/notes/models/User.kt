@@ -1,5 +1,6 @@
 package com.example.notes.models
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,71 +8,100 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
+// Datenklasse für den Benutzer
 data class User(
     val uid: String = "",
     val email: String = "",
     val name: String = "",
-    val username: String = ""
+    val username: String = "",
+    val avatarUrl: String = ""
 )
 
-class UserViewModel : ViewModel(){
-
-    val auth = Firebase.auth
-    val db = Firebase.firestore
+class UserViewModel : ViewModel() {
+    private val auth = Firebase.auth
+    private val db = Firebase.firestore
 
     private val _userUID = MutableLiveData<String?>()
     val userUID: LiveData<String?> = _userUID
 
+    init {
+        // Initialisiere userUID mit dem aktuell angemeldeten Benutzer
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            setUserUID(currentUser.uid)
+        }
+    }
+
     fun setUserUID(uid: String?) {
+        Log.d("UserViewModel", "Setting userUID: $uid")
         _userUID.value = uid
     }
 
-    fun getUserUID(): String? {
-        return _userUID.value
+    fun loginUser(email: String, password: String, onLoginCompleted: () -> Unit) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    val uid = user?.uid
+                    Log.d("UserViewModel", "User logged in: UID=$uid")
+                    setUserUID(uid) // Aktualisiere die `userUID`
+                    onLoginCompleted() // Navigation auslösen
+                } else {
+                    Log.e("UserViewModel", "Login failed: ${task.exception?.message}")
+                }
+            }
     }
 
-    fun saveUser(name: String, email: String, password: String, username: String, onSaveCompleted: () -> Unit) {
 
+    fun saveUser(
+        name: String,
+        email: String,
+        password: String,
+        username: String,
+        avatarUrl: String,
+        onSaveCompleted: () -> Unit
+    ) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val user = auth.currentUser
                     val uid = user?.uid ?: ""
-                    val newUser = User(uid, email, name, username)
+                    val newUser = User(uid, email, name, username, avatarUrl)
+
+                    Log.d("UserViewModel", "Saving user: UID=$uid, Name=$name, Username=$username")
 
                     db.collection("users")
                         .document(uid)
                         .set(newUser)
                         .addOnSuccessListener {
-                            // User data saved successfully
-                            println("User data saved successfully")
-                            setUserUID(uid)
-                            onSaveCompleted()
+                            Log.d("UserViewModel", "User data saved successfully: UID=$uid")
+                            setUserUID(uid) // Aktualisiere die UID des Benutzers
+                            onSaveCompleted() // Rufe den Callback auf
                         }
                         .addOnFailureListener { exception ->
-                            // Handle error
-                            println("Error saving user data: $exception")
+                            Log.e("UserViewModel", "Error saving user data: $exception")
                         }
                 } else {
-                    // Handle error
-                    println("Error creating user: ${task.exception}")
+                    Log.e("UserViewModel", "Error creating user: ${task.exception?.message}")
                 }
             }
     }
 
-    fun loginUser(email : String, password : String, onSaveCompleted: () -> Unit) {
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    println("Login successful")
-                    val user = auth.currentUser
-                    val uid = user?.uid ?: ""
-                    setUserUID(uid)
-                    onSaveCompleted()
+    fun loadUserProfile(uid: String, onUserLoaded: (User) -> Unit) {
+        db.collection("users")
+            .document(uid)
+            .get()
+            .addOnSuccessListener { document ->
+                val user = document.toObject(User::class.java)
+                if (user != null) {
+                    Log.d("UserViewModel", "User profile loaded: $user")
+                    onUserLoaded(user)
                 } else {
-                   println("Login failed: ${task.exception}")
+                    Log.e("UserViewModel", "User profile not found for UID=$uid")
                 }
             }
+            .addOnFailureListener { exception ->
+                Log.e("UserViewModel", "Error loading user profile: $exception")
+            }
     }
-
 }

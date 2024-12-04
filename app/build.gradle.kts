@@ -64,6 +64,7 @@ dependencies {
     // Coil - Zum Laden von Bildern (z.B. für das Profilbild)
     implementation("io.coil-kt:coil-compose:2.3.0")
     implementation("io.coil-kt:coil-svg:2.3.0")
+    implementation ("androidx.compose.runtime:runtime-livedata:1.x.x")
 
 
     // Navigation und Firebase
