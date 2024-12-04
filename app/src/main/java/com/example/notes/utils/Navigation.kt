@@ -1,5 +1,6 @@
 package com.example.notes.utils
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.Navigation
 import androidx.navigation.compose.NavHost
@@ -10,6 +11,7 @@ import com.example.notes.ui.screens.LoginScreen
 import com.example.notes.ui.screens.MainScreen
 import com.example.notes.ui.screens.NoteOverviewScreen
 import com.example.notes.ui.screens.NoteScreen
+import com.example.notes.ui.screens.NotesAtPlaceScreen
 import com.example.notes.ui.screens.ProfileScreen
 import com.example.notes.ui.screens.RegisterScreen
 
@@ -17,7 +19,7 @@ import com.example.notes.ui.screens.RegisterScreen
 fun Navigation(){
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Screen.Home.route) {
+    NavHost(navController = navController, startDestination = Screen.Authentication.route) {
 
         composable(route = Screen.Authentication.route) {
             AuthenticationScreen(navController = navController)
@@ -43,6 +45,13 @@ fun Navigation(){
         composable(route = Screen.NoteOverview.route) {
             NoteOverviewScreen(navController=navController)
         }
-
+        composable(route = Screen.NotesAtPlace.route) {
+            val placeId = it.arguments?.getString("placeId")
+            if (placeId != null) {
+                NotesAtPlaceScreen(placeId = placeId, navController = navController)
+            } else {
+                Log.e("Location","Navigation: no placeId")
+            }
+        }
     }
 }

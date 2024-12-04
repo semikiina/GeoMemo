@@ -70,7 +70,7 @@ fun MainScreen(navController: NavController) {
             }
         }
 
-        MainScreenMap()
+        MainScreenMap(navController = navController)
     }
 
 }

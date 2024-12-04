@@ -15,5 +15,11 @@ sealed class Screen (val route : String){
     object Settings : Screen("settings")
     object Note: Screen("note")
     object NoteOverview: Screen("noteOverview")
+    object NotesOnPlace: Screen("noteOnPlace")
 
+    object NotesAtPlace : Screen("notesAtPlace/{placeId}") {
+        fun createRoute(placeId: String): String {
+            return "notesAtPlace/$placeId"
+        }
+    }
 }
