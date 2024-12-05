@@ -118,7 +118,7 @@ fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
                     isLoading = true
                     viewModel.saveUser(name, email, password, username, avatarUrl.value) {
                         isLoading = false
-                        navController.navigate("login") // Nach erfolgreicher Registrierung zur Login-Seite
+                        navController.navigate("home") // Nach erfolgreicher Registrierung zur Login-Seite
                     }
                 }
             },
