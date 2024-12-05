@@ -56,7 +56,7 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
     Scaffold (
         topBar = {
             TopAppBar(
-                title = { Text ("Notes on place")},
+                title = { Text ("Notes at place")},
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
