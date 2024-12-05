@@ -25,16 +25,15 @@ fun generateRandomAvatar(): String {
 }
 
 @Composable
-fun RegisterScreen(navController: NavController) {
+fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
-    var isError by remember { mutableStateOf(false) }
     val avatarUrl = remember { mutableStateOf(generateRandomAvatar()) }
-
-    val viewModel = UserViewModel()
+    var isLoading by remember { mutableStateOf(false) }
+    var isError by remember { mutableStateOf(false) }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -114,14 +113,12 @@ fun RegisterScreen(navController: NavController) {
             onClick = {
                 if (name.isEmpty() || email.isEmpty() || password.isEmpty() || username.isEmpty() || password != confirmPassword) {
                     isError = true
-                    Log.d("RegisterScreen", "Validation failed: Name=$name, Email=$email, Username=$username")
+                    Log.e("RegisterScreen", "Validation failed: Name=$name, Email=$email, Username=$username")
                 } else {
-                    Log.d("RegisterScreen", "Attempting to register user: Name=$name, Username=$username")
-
-                    // Registriere Benutzer und leite zur Login-Seite weiter
+                    isLoading = true
                     viewModel.saveUser(name, email, password, username, avatarUrl.value) {
-                        Log.d("RegisterScreen", "User registered successfully. Redirecting to Login.")
-                        navController.navigate("login") // Navigiere zur Login-Seite
+                        isLoading = false
+                        navController.navigate("login") // Nach erfolgreicher Registrierung zur Login-Seite
                     }
                 }
             },
@@ -129,7 +126,14 @@ fun RegisterScreen(navController: NavController) {
                 .fillMaxWidth()
                 .padding(top = 20.dp)
         ) {
-            Text("Create Account")
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text("Create Account")
+            }
         }
 
         Row(

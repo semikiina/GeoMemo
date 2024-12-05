@@ -14,9 +14,10 @@ import com.example.notes.models.UserViewModel
 import android.util.Log
 
 @Composable
-fun LoginScreen(navController: NavController, viewModel: UserViewModel = UserViewModel()) {
+fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -46,16 +47,25 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel = UserVie
 
         Button(
             onClick = {
+                isLoading = true // Ladeanzeige aktivieren
                 viewModel.loginUser(email, password) {
-                    Log.d("LoginScreen", "Login successful. Navigating to ProfileScreen.")
-                    navController.navigate("home")
+                    Log.d("LoginScreen", "Login successful. Waiting for userUID...")
+                    isLoading = false
+                    navController.navigate("profile") // Navigiere zur Profilseite
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 20.dp)
         ) {
-            Text("Login")
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text("Login")
+            }
         }
 
         Row(

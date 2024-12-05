@@ -26,11 +26,13 @@ fun Navigation() {
         }
 
         composable(route = Screen.Register.route) {
-            RegisterScreen(navController = navController)
+            // Übergabe des ViewModels an den RegisterScreen
+            RegisterScreen(navController = navController, viewModel = userViewModel)
         }
 
         composable(route = Screen.Login.route) {
-            LoginScreen(navController = navController)
+            // Übergabe des ViewModels an den LoginScreen
+            LoginScreen(navController = navController, viewModel = userViewModel)
         }
 
         composable(route = Screen.Home.route) {
@@ -41,8 +43,8 @@ fun Navigation() {
             NoteScreen(navController = navController)
         }
 
-        // ProfileScreen: Übergabe des ViewModels
         composable(route = Screen.Profile.route) {
+            // Übergabe des ViewModels an den ProfileScreen
             ProfileScreen(navController = navController, viewModel = userViewModel)
         }
 
