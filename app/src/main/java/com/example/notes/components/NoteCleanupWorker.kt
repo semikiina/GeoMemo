@@ -14,27 +14,30 @@ class NoteCleanupWorker(context: Context, workerParams: WorkerParameters) :
         val currentTime = System.currentTimeMillis()
 
         return try {
-            // Abrufen aller abgelaufenen Notizen
+            // Abgelaufene Notizen abrufen
             val snapshot = db.collection("notes")
                 .whereLessThanOrEqualTo("expirationTime", currentTime)
                 .get()
-                .await() // Suspendierende Funktion
+                .await()
 
-            // Löschen aller abgelaufenen Notizen
-            val batch = db.batch() // Batch-Operation für effizienteres Löschen
+            if (snapshot.isEmpty) {
+                println("No expired notes found to delete.")
+                return Result.success()
+            }
+
+            // Löschen der abgelaufenen Notizen
+            val batch = db.batch()
             snapshot.documents.forEach { document ->
                 batch.delete(document.reference)
             }
-            batch.commit().await() // Batch ausführen
+            batch.commit().await()
 
-            // Erfolg melden
             println("Successfully deleted ${snapshot.size()} expired notes from Firestore.")
             Result.success()
         } catch (e: Exception) {
-            // Fehlerbehandlung
             e.printStackTrace()
             println("Error deleting expired notes: $e")
-            Result.retry() // Job erneut ausführen, wenn ein Fehler auftritt
+            Result.retry() // Wiederholen bei Fehler
         }
     }
 }

@@ -1,54 +1,71 @@
 package com.example.notes.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.SvgDecoder
+import coil.request.ImageRequest
 import com.example.notes.models.UserViewModel
+import android.util.Log
+
+fun generateRandomAvatar(): String {
+    val randomString = (1..12).map { ('a'..'z').random() }.joinToString("")
+    return "https://api.multiavatar.com/$randomString.svg"
+}
 
 @Composable
-fun RegisterScreen(navController: NavController) {
-
+fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
+    val avatarUrl = remember { mutableStateOf(generateRandomAvatar()) }
+    var isLoading by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
-
-    var viewModel = UserViewModel()
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.padding(30.dp).padding(top = 50.dp),
-
+        modifier = Modifier
+            .padding(30.dp)
+            .padding(top = 50.dp)
     ) {
-
         Text(
-            text= "Create an Account",
+            text = "Create an Account",
             modifier = Modifier.padding(bottom = 20.dp),
             style = MaterialTheme.typography.headlineMedium
         )
 
-        // Name Input
+        Image(
+            painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(avatarUrl.value)
+                    .decoderFactory(SvgDecoder.Factory())
+                    .build()
+            ),
+            contentDescription = "Generated Avatar",
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape)
+                .padding(bottom = 16.dp)
+        )
+
+        Button(onClick = { avatarUrl.value = generateRandomAvatar() }) {
+            Text("Generate New Avatar")
+        }
+
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
@@ -56,7 +73,6 @@ fun RegisterScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Username Input
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
@@ -64,7 +80,6 @@ fun RegisterScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Email Input
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -72,7 +87,6 @@ fun RegisterScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Password Input
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -80,7 +94,6 @@ fun RegisterScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Confirm Password Input
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
@@ -88,53 +101,55 @@ fun RegisterScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        if(password != confirmPassword){
-            Text("Passwords do not match.")
+        if (password != confirmPassword) {
+            Text("Passwords do not match.", color = MaterialTheme.colorScheme.error)
         }
 
-        if(isError){
-            Text("All fields are required.")
+        if (isError) {
+            Text("All fields are required.", color = MaterialTheme.colorScheme.error)
         }
 
-        // Submit Button
         Button(
             onClick = {
-                // Handle form submission
-                if(name.isEmpty() || email.isEmpty() || password.isEmpty() || username.isEmpty() || (password != confirmPassword)){
+                if (name.isEmpty() || email.isEmpty() || password.isEmpty() || username.isEmpty() || password != confirmPassword) {
                     isError = true
-                    println("All fields are required or passwords do not match.")
-                    return@Button
-                }
-                else{
-                    viewModel.saveUser(name, email, password, username){
-                        navController.navigate("home")
+                    Log.e("RegisterScreen", "Validation failed: Name=$name, Email=$email, Username=$username")
+                } else {
+                    isLoading = true
+                    viewModel.saveUser(name, email, password, username, avatarUrl.value) {
+                        isLoading = false
+                        navController.navigate("home") // Nach erfolgreicher Registrierung zur Login-Seite
                     }
-
-
-
                 }
             },
-            modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp)
         ) {
-            Text("Create Account")
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text("Create Account")
+            }
         }
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
-        ){
+        ) {
             Text("Already have an account?")
             TextButton(onClick = {
                 navController.navigate("login")
             }) {
                 Text(
-                    text="Login here",
+                    text = "Login here",
                     textDecoration = TextDecoration.Underline,
                     fontWeight = FontWeight.Bold
                 )
-
             }
         }
     }
 }
-
