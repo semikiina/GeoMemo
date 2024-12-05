@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import com.example.notes.ui.theme.NotesTheme
 import com.example.notes.utils.Navigation
 import androidx.work.*
+
 import com.example.notes.workers.NoteCleanupWorker
 import java.util.concurrent.TimeUnit
 
@@ -20,11 +21,12 @@ class MainActivity : ComponentActivity() {
                 Navigation()
             }
         }
+
         setupNoteCleanupWorker()
     }
-    private fun setupNoteCleanupWorker() {
 
-        val workRequest = PeriodicWorkRequestBuilder<NoteCleanupWorker>(24, TimeUnit.HOURS) // Alle 24 Stunden
+    private fun setupNoteCleanupWorker() {
+        val workRequest = PeriodicWorkRequestBuilder<NoteCleanupWorker>(24, TimeUnit.HOURS)
             .setConstraints(
                 Constraints.Builder()
                     .setRequiresBatteryNotLow(true)
@@ -32,7 +34,6 @@ class MainActivity : ComponentActivity() {
                     .build()
             )
             .build()
-
 
         WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
             "NoteCleanupWork",
