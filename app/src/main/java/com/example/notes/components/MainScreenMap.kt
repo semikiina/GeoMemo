@@ -8,7 +8,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -19,6 +18,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.example.notes.data.getCurrentLocation
 import com.example.notes.utils.Screen
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.maps.android.compose.Circle
 
 @SuppressLint("InlinedApi")
 @Composable
@@ -37,6 +37,10 @@ fun MainScreenMap(navController: NavController){
             currentLocation.value, 15f
         )
     }
+
+    var circle = Circle(
+        center = currentLocation.value,
+        radius = 50.0)
 
     LaunchedEffect(key1 = currentLocation.value) {
         currentLocation.value.let {
@@ -59,5 +63,9 @@ fun MainScreenMap(navController: NavController){
             navController.navigate(route = Screen.NotesAtPlace.createRoute(poi.placeId))
         }
     ) {
+        Circle(
+            center = currentLocation.value,
+            radius = 50.0
+        )
     }
 }

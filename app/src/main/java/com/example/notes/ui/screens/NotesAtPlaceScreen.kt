@@ -19,7 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.notes.models.Note
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,10 +32,12 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
 
     var notes by remember { mutableStateOf<List<Note>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-
     val db = Firebase.firestore
+
     db.collection("notes")
         .whereEqualTo("placeId", placeId)
+        .whereGreaterThan("expirationTime", System.currentTimeMillis())
+        .orderBy("expirationTime", Query.Direction.ASCENDING)
         .get()
         .addOnSuccessListener { documents ->
             if (!documents.isEmpty) {
@@ -90,5 +97,25 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
                 }
             }
         }
+    }
+}
+
+suspend fun loadNotesAtPlace(
+    db: FirebaseFirestore,
+    callback: (List<Note>?, Exception?) -> Unit
+) {
+    try {
+        val snapshot = withContext(Dispatchers.IO) {
+            db.collection("notes")
+                .whereGreaterThan("expirationTime", System.currentTimeMillis())
+                .orderBy("expirationTime", Query.Direction.ASCENDING)
+                .get()
+                .await()
+        }
+
+        val notes = snapshot.documents.mapNotNull { it.toObject(Note::class.java) }
+        callback(notes, null)
+    } catch (e: Exception) {
+        callback(null, e)
     }
 }
