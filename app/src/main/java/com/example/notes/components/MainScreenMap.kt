@@ -3,6 +3,7 @@ package com.example.notes.components
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.location.Location
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,6 +26,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.Circle
 
 private const val PERMISSION = "android.permission.ACCESS_FINE_LOCATION"
+private const val MAX_DISTANCE = 50.0
 
 @SuppressLint("InlinedApi")
 @Composable
@@ -85,12 +87,32 @@ fun MainScreenMap(navController: NavController){
         onPOIClick = { poi ->
             // Handle POI click
             Log.i("Location","POI clicked: ${poi.name} at ${poi.latLng.latitude}, ${poi.latLng.longitude} id ${poi.placeId}")
-            navController.navigate(route = Screen.NotesAtPlace.createRoute(poi.placeId))
+
+            val pioLatLng = poi.latLng
+            val currentLatLng = currentLocation.value
+
+            val results = FloatArray(1)
+            Location.distanceBetween(
+                currentLatLng.latitude,
+                currentLatLng.longitude,
+                pioLatLng.latitude,
+                pioLatLng.longitude,
+                results
+            )
+
+            val distance = results[0] // Distance in meters
+
+            if (distance <= MAX_DISTANCE) {
+                Log.i("Location", "place is in radius")
+                navController.navigate(route = Screen.NotesAtPlace.createRoute(poi.placeId))
+            } else {
+                Log.i("Location", "place is NOT in radius")
+            }
         }
     ) {
         Circle(
             center = currentLocation.value,
-            radius = 50.0
+            radius = MAX_DISTANCE
         )
     }
 }
