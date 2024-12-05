@@ -1,7 +1,6 @@
 package com.example.notes.ui.screens
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,34 +21,50 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.example.notes.data.getNearestPlaces
+import com.example.notes.models.UserViewModel
 import com.google.android.libraries.places.api.model.Place
 
 @SuppressLint("NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteScreen(navController: NavController) {
+fun NoteScreen(navController: NavController, userViewModel: UserViewModel) {
     var noteText by remember { mutableStateOf("") }
     var selectedNoteType by remember { mutableStateOf("Daily Note") }
     var isPublic by remember { mutableStateOf(true) }
-    val username = "Cristina Semikina" // Beispiel-Benutzername
-    val db = Firebase.firestore // Firebase Firestore-Referenz
-    val maxNoteLength = 220 // max words
+    val db = Firebase.firestore // Firebase Firestore reference
+    val maxNoteLength = 220 // Max allowed characters
 
-    // to access nearest place from current location
+    // State to hold the username
+    var username by remember { mutableStateOf("Loading...") }
+
+    // State for the nearest location
     val context = LocalContext.current
-    val nearestPlace = remember { mutableStateOf(
-        Place.builder()
-            .setDisplayName("no name")
-            .setId("no id")
-            .build()
-    ) }
-    LaunchedEffect(Unit) {
-        //Log.i("Location", "Launched effect get nearest places")
-        val places = getNearestPlaces(context)
-        //Log.i("Location", "places count ${places.size}")
-        nearestPlace.value = places[0]
+    val nearestPlace = remember {
+        mutableStateOf(
+            Place.builder()
+                .setDisplayName("no name")
+                .setId("no id")
+                .build()
+        )
     }
 
+    // Load the username using the UserViewModel
+    LaunchedEffect(userViewModel.userUID.value) {
+        val uid = userViewModel.userUID.value
+        if (!uid.isNullOrBlank()) {
+            userViewModel.loadUserProfile(uid) { user ->
+                username = user.username
+            }
+        }
+    }
+
+    // Load the nearest place
+    LaunchedEffect(Unit) {
+        val places = getNearestPlaces(context)
+        if (places.isNotEmpty()) {
+            nearestPlace.value = places[0]
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -72,7 +87,7 @@ fun NoteScreen(navController: NavController) {
                 .padding(16.dp)
                 .fillMaxSize()
         ) {
-            // Auswahl des Notiztyps, Public/Private Text und Schalter
+            // Note type selection and visibility toggle
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -107,7 +122,7 @@ fun NoteScreen(navController: NavController) {
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = if (isPublic) "Public" else "Privat",
+                    text = if (isPublic) "Public" else "Private",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
@@ -118,6 +133,8 @@ fun NoteScreen(navController: NavController) {
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }
+
+            // Location display
             Text(
                 text = "Your Location",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -136,18 +153,17 @@ fun NoteScreen(navController: NavController) {
                 ) {
                     Column {
                         Text(
-                            text = "location",
+                            text = "Location",
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                         )
                         Text(
-                            text = nearestPlace.value.displayName.toString(),
+                            text = nearestPlace.value.displayName ?: "Unknown",
                             style = MaterialTheme.typography.bodySmall,
                         )
                         Text(
-                            text = nearestPlace.value.id.toString(),
+                            text = nearestPlace.value.id ?: "Unknown",
                             style = MaterialTheme.typography.bodySmall,
                         )
-
                     }
                     Icon(
                         imageVector = Icons.Default.LocationOn,
@@ -157,7 +173,7 @@ fun NoteScreen(navController: NavController) {
                 }
             }
 
-            // Eingabefeld für die Notiz
+            // Note input field
             Text(
                 text = "Your Note",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -167,7 +183,6 @@ fun NoteScreen(navController: NavController) {
             OutlinedTextField(
                 value = noteText,
                 onValueChange = { newText ->
-                    // max 220 characters
                     if (newText.length <= maxNoteLength) {
                         noteText = newText
                     }
@@ -178,40 +193,33 @@ fun NoteScreen(navController: NavController) {
                     .height(200.dp)
             )
 
-
-            // show how many characters are left
             Text(
                 text = "${maxNoteLength - noteText.length} characters remaining",
                 style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            // Button zum Erstellen der Notiz
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
                     if (noteText.isNotBlank()) {
-                        val visibility = if (isPublic) "Public" else "Privat"
-                        val noteDate = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(
-                            Date()
-                        )
+                        val visibility = if (isPublic) "Public" else "Private"
+                        val noteDate = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(Date())
 
-                        // Ablaufzeit basierend auf Notiztyp berechnen
                         val expirationTime = when (selectedNoteType) {
-                            //"Daily Note" -> System.currentTimeMillis() + (24 * 60 * 60 * 1000) // 24 h
-                            "Daily Note" -> System.currentTimeMillis() + (1 * 60 * 1000) // 1 Minute for testing
-                            "Weekly Note" -> System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000) // 7 days
-                            "Monthly Note" -> System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000) // 30 days
+                            "Daily Note" -> System.currentTimeMillis() + (24 * 60 * 60 * 1000)
+                            "Weekly Note" -> System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000)
+                            "Monthly Note" -> System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000)
                             else -> System.currentTimeMillis()
                         }
 
-                        // Notiz in Firestore speichern
+                        // Note object with username and location included
                         val note = Note(
                             noteText = noteText,
                             type = selectedNoteType,
                             visibility = visibility,
-                            username = username,
+                            username = username, // Use the username loaded from Firestore
                             timestamp = System.currentTimeMillis(),
                             date = noteDate,
                             expirationTime = expirationTime,
@@ -219,18 +227,15 @@ fun NoteScreen(navController: NavController) {
                             placeId = nearestPlace.value.id ?: "Unknown"
                         )
 
-                        // Speichern in Firestore
                         db.collection("notes")
                             .add(note)
                             .addOnSuccessListener {
-                                // Erfolgreiches Hinzufügen
-                                navController.navigate("noteOverview")
+                                navController.navigate("home")
                             }
                             .addOnFailureListener { exception ->
                                 println("Error saving note: $exception")
                             }
 
-                        // Eingabe zurücksetzen
                         noteText = ""
                     }
                 },

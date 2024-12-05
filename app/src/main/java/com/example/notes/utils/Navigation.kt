@@ -42,7 +42,8 @@ fun Navigation() {
         }
 
         composable(route = Screen.Note.route) {
-            NoteScreen(navController = navController)
+            NoteScreen(
+                navController = navController, userViewModel = userViewModel)
         }
 
         composable(route = Screen.Profile.route) {

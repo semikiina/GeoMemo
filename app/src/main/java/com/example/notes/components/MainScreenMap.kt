@@ -74,5 +74,4 @@ fun MainScreenMap(navController: NavController){
 @Preview
 @Composable
 fun MainMapPreview(){
-
 }
