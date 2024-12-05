@@ -51,7 +51,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                 viewModel.loginUser(email, password) {
                     Log.d("LoginScreen", "Login successful. Waiting for userUID...")
                     isLoading = false
-                    navController.navigate("profile") // Navigiere zur Profilseite
+                    navController.navigate("home") // Navigiere zur Profilseite
                 }
             },
             modifier = Modifier
