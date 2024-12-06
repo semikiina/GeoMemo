@@ -1,15 +1,18 @@
 package com.example.notes.components
 
-
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -18,12 +21,11 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.rememberCameraPositionState
 
 import com.example.notes.data.getCurrentLocation
+import com.example.notes.utils.Screen
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import kotlinx.coroutines.tasks.await
+import com.google.maps.android.compose.Circle
+
+private const val PERMISSION = "android.permission.ACCESS_FINE_LOCATION"
 
 @SuppressLint("MissingPermission", "InlinedApi")
 @Composable
@@ -34,13 +36,36 @@ fun MainScreenMap(navController: NavController) {
     // Initial position set to London
     val london = LatLng(51.5074, -0.1278)
     val currentLocation = remember { mutableStateOf(london) }
+
+    val granted = remember {
+        mutableStateOf(
+            PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(context, PERMISSION))
+        }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            Log.i("Location", "Permission was granted")
+        } else {
+            Log.i("Location", "Permission was NOT granted")
+        }
+        granted.value = isGranted
+    }
+
     val noteLocations = remember { mutableStateMapOf<String, LatLng>() }
 
     // Fetch current location and notes from Firebase
     LaunchedEffect(Unit) {
-        try {
+        if (!granted.value) {
+            Log.i("Location", "Permission isnt granted")
+            launcher.launch(PERMISSION)
+        }
+        if (granted.value) {
+            try {
             // Get user's current location
             currentLocation.value = getCurrentLocation(context)
+        }
 
             // Fetch notes from Firebase Firestore
             val db = FirebaseFirestore.getInstance()
@@ -64,6 +89,7 @@ fun MainScreenMap(navController: NavController) {
     }
 
     // Camera position state to handle map view
+
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
             currentLocation.value, 15f
@@ -83,7 +109,7 @@ fun MainScreenMap(navController: NavController) {
     GoogleMap(
         cameraPositionState = cameraPositionState,
         properties = MapProperties(
-            isMyLocationEnabled = true // Enable user location
+            isMyLocationEnabled = granted.value
         ),
         onPOIClick = { poi ->
             // Handle POI click (optional navigation)
@@ -94,25 +120,9 @@ fun MainScreenMap(navController: NavController) {
             navController.navigate(route = "notesAtPlace/${poi.placeId}")
         }
     ) {
-        // Add markers for each note location
-        noteLocations.forEach { (placeId, location) ->
-            Marker(
-                state = MarkerState(position = location),
-                title = "Note at ${location.latitude}, ${location.longitude}",
-                snippet = "Click for details",
-                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED),
-                onClick = {
-                    // Navigate to the notes screen for this location
-                    navController.navigate(route = "notesAtPlace/$placeId")
-                    true
-                }
-            )
-        }
+        Circle(
+            center = currentLocation.value,
+            radius = 50.0
+        )
     }
-}
-
-@Preview
-@Composable
-fun MainMapPreview() {
-    // Placeholder for preview
 }

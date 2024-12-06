@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -15,8 +16,8 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.api.net.SearchNearbyRequest
 import kotlinx.coroutines.tasks.await
 
-
 private const val PERMISSION = "android.permission.ACCESS_FINE_LOCATION"
+
 
 suspend fun getCurrentLocation(context: Context): LatLng {
 
@@ -27,9 +28,6 @@ suspend fun getCurrentLocation(context: Context): LatLng {
                 PERMISSION
             )
         )
-
-    // TODO
-    // ask for permission
 
     /*
     val launcher = rememberLauncherForActivityResult(
