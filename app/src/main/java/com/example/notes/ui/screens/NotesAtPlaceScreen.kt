@@ -41,7 +41,7 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
 
         expiredNotes.forEach { note ->
             try {
-                db.collection("notes").document(note.placeId).delete().await()
+                db.collection("notes").document(note.id).delete().await()
                 Log.i("NotesAtPlaceScreen", "Deleted expired note with placeId: ${note.placeId}")
             } catch (e: Exception) {
                 Log.e("NotesAtPlaceScreen", "Error deleting expired note: ${e.localizedMessage}")
@@ -63,7 +63,10 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
                 }
 
                 if (snapshot != null && !snapshot.isEmpty) {
-                    val loadedNotes = snapshot.documents.mapNotNull { it.toObject(Note::class.java) }
+                    val loadedNotes = snapshot.documents.mapNotNull { doc ->
+                        val note = doc.toObject(Note::class.java)
+                        note?.copy(id = doc.id)
+                    }
 
 
                     kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {

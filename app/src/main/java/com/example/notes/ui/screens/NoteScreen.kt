@@ -191,14 +191,14 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
             )
 
 
-            // show how many characters are left
+
             Text(
                 text = "${maxNoteLength - noteText.length} characters remaining",
                 style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            // Button zum Erstellen der Notiz
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
@@ -209,7 +209,6 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                             Date()
                         )
 
-                        // Ablaufzeit basierend auf Notiztyp berechnen
                         val expirationTime = when (selectedNoteType) {
                             //"Daily Note" -> System.currentTimeMillis() + (24 * 60 * 60 * 1000) // 24 h
                             "Daily Note" -> System.currentTimeMillis() + (1 * 60 * 1000) // 1 Minute for testing
@@ -218,7 +217,7 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                             else -> System.currentTimeMillis()
                         }
 
-                        // Notiz in Firestore speichern
+
                         val note = Note(
                             noteText = noteText,
                             type = selectedNoteType,
@@ -228,14 +227,16 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                             date = noteDate,
                             expirationTime = expirationTime,
                             placeName = nearestPlace.value.displayName ?: "Unknown",
-                            placeId = nearestPlace.value.id ?: "Unknown"
+                            placeId = nearestPlace.value.id ?: "Unknown",
+                            latitude = nearestPlace.value.latLng?.latitude ?: 0.0,
+                            longitude = nearestPlace.value.latLng?.longitude ?: 0.0
                         )
 
-                        // Speichern in Firestore
+
                         db.collection("notes")
                             .add(note)
                             .addOnSuccessListener {
-                                // Erfolgreiches Hinzufügen
+
                                 navController.navigate("home")
                             }
                             .addOnFailureListener { exception ->

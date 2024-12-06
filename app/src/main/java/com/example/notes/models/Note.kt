@@ -1,6 +1,7 @@
 package com.example.notes.models
 
 data class Note(
+    val id: String = "",
     val noteText: String = "",
     val type: String = "",
     val visibility: String = "",
@@ -9,7 +10,9 @@ data class Note(
     val date: String = "",
     val expirationTime: Long = 0L,
     val placeName: String = "",
-    val placeId: String = ""
+    val placeId: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 ) {
 
 }

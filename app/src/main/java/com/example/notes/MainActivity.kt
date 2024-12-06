@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun setupNoteCleanupWorker() {
-        val workRequest = PeriodicWorkRequestBuilder<NoteCleanupWorker>(24, TimeUnit.HOURS)
+        val workRequest = PeriodicWorkRequestBuilder<NoteCleanupWorker>(15, TimeUnit.MINUTES)
             .setConstraints(
                 Constraints.Builder()
                     .setRequiresBatteryNotLow(true)

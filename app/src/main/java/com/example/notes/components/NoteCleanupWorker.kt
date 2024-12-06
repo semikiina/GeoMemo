@@ -14,7 +14,7 @@ class NoteCleanupWorker(context: Context, workerParams: WorkerParameters) :
         val currentTime = System.currentTimeMillis()
 
         return try {
-            // Abgelaufene Notizen abrufen
+
             val snapshot = db.collection("notes")
                 .whereLessThanOrEqualTo("expirationTime", currentTime)
                 .get()
@@ -25,7 +25,7 @@ class NoteCleanupWorker(context: Context, workerParams: WorkerParameters) :
                 return Result.success()
             }
 
-            // Löschen der abgelaufenen Notizen
+
             val batch = db.batch()
             snapshot.documents.forEach { document ->
                 batch.delete(document.reference)
@@ -37,7 +37,7 @@ class NoteCleanupWorker(context: Context, workerParams: WorkerParameters) :
         } catch (e: Exception) {
             e.printStackTrace()
             println("Error deleting expired notes: $e")
-            Result.retry() // Wiederholen bei Fehler
+            Result.retry()
         }
     }
 }
