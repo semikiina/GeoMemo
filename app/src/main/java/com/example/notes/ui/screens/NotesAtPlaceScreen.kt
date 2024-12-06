@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import com.example.notes.components.NoteCard
 import com.example.notes.models.Note
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -29,30 +31,30 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
     var isLoading by remember { mutableStateOf(true) }
 
     val db = Firebase.firestore
-    db.collection("notes")
-        .whereEqualTo("placeId", placeId)
-        .get()
-        .addOnSuccessListener { documents ->
-            if (!documents.isEmpty) {
-                /*
-                for (document in documents) {
-                    val note = document.toObject(Note::class.java)
-                    notes.toMutableList().add(note)
-                    Log.i("Location","Retrieved note: ${note.noteText}")
+
+    LaunchedEffect(placeId) {
+        isLoading = true
+        db.collection("notes")
+            .whereEqualTo("placeId", placeId)
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    Log.e("NotesAtPlaceScreen", "Error loading notes: $exception")
+                    isLoading = false
+                    return@addSnapshotListener
                 }
-                 */
-                notes = documents.map { document ->
-                    document.toObject(Note::class.java)
+
+                if (snapshot != null && !snapshot.isEmpty) {
+                    notes = snapshot.documents.map { it.toObject(Note::class.java) ?: Note() }
+                    Log.i("NotesAtPlaceScreen", "Loaded ${notes.size} notes")
+                } else {
+                    notes = emptyList()
+                    Log.i("NotesAtPlaceScreen", "No notes found for placeId: $placeId")
                 }
-            } else {
-                Log.i("Location","No notes found for placeId: $placeId")
+                isLoading = false
             }
-            isLoading = false
-        }
-        .addOnFailureListener { exception ->
-            Log.i("Location","Error retrieving notes: $exception")
-            isLoading = false
-        }
+    }
+
     Scaffold (
         topBar = {
             TopAppBar(

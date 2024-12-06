@@ -224,7 +224,9 @@ fun NoteScreen(navController: NavController, userViewModel: UserViewModel) {
                             date = noteDate,
                             expirationTime = expirationTime,
                             placeName = nearestPlace.value.displayName ?: "Unknown",
-                            placeId = nearestPlace.value.id ?: "Unknown"
+                            placeId = nearestPlace.value.id ?: "Unknown",
+                            //latitude = nearestPlace.value.latLng?.latitude ?: 0.0,
+                            //longitude = nearestPlace.value.latLng?.longitude ?: 0.0
                         )
 
                         db.collection("notes")

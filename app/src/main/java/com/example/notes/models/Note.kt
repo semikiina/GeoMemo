@@ -9,7 +9,7 @@ data class Note(
     val date: String = "",
     val expirationTime: Long = 0L,
     val placeName: String = "",
-    val placeId: String = ""
+    val placeId: String = "",
 ) {
 
 }
