@@ -4,13 +4,16 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Looper
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
@@ -25,8 +28,15 @@ import com.example.notes.utils.Screen
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.Circle
 
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+
 private const val PERMISSION = "android.permission.ACCESS_FINE_LOCATION"
 private const val MAX_DISTANCE = 50.0
+private const val CIRCLE_POSITION_UPDATE_INTERVAL = 1000        // how often is circle position updated in millis
 
 @SuppressLint("InlinedApi")
 @Composable
@@ -55,7 +65,7 @@ fun MainScreenMap(navController: NavController){
 
     LaunchedEffect(Unit) {
         if (!granted.value) {
-            Log.i("Location", "Permission isnt granted")
+            Log.i("Location", "Permission is NOT granted")
             launcher.launch(PERMISSION)
         }
         if (granted.value) {
@@ -77,6 +87,38 @@ fun MainScreenMap(navController: NavController){
                 )
             )
         }
+    }
+
+    val circleCenter = remember { mutableStateOf(currentLocation.value) }
+    // Observe location changes
+    LaunchedEffect(Unit) {
+        if (granted.value) {
+            val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+            val locationRequest = LocationRequest.Builder(
+                LocationRequest.PRIORITY_HIGH_ACCURACY, CIRCLE_POSITION_UPDATE_INTERVAL.toLong()
+            ).build()
+
+            val locationCallback = object : LocationCallback() {
+                override fun onLocationResult(locationResult: LocationResult) {
+                    val location = locationResult.lastLocation
+                    if (location != null) {
+                        val lat = location.latitude
+                        val lng = location.longitude
+
+                        // Print current location
+                        circleCenter.value = LatLng(lat, lng)
+                        //Log.i("Location","Location changed: Latitude=$lat, Longitude=$lng")
+                    }
+                }
+            }
+
+            fusedLocationProviderClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        }
+
     }
 
     GoogleMap(
@@ -111,7 +153,7 @@ fun MainScreenMap(navController: NavController){
         }
     ) {
         Circle(
-            center = currentLocation.value,
+            center = circleCenter.value,
             radius = MAX_DISTANCE
         )
     }

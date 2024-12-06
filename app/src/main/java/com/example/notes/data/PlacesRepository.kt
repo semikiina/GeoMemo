@@ -29,22 +29,6 @@ suspend fun getCurrentLocation(context: Context): LatLng {
             )
         )
 
-    /*
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        granted.value = isGranted
-    }
-
-    LaunchedEffect(key1 = Unit) {
-    if (!granted.value) {
-        launcher.launch(PERMISSION)
-    }
-}
-    val l = ActivityResultContracts.RequestPermission()
-
-     */
-
     val prague = LatLng(50.0755, 14.4378)
     val currentLocation = mutableStateOf(prague)
 
@@ -65,8 +49,6 @@ suspend fun getCurrentLocation(context: Context): LatLng {
     } else {
         Log.e("Location", "Location NOT granted")
     }
-
-    //Log.i("Location", "Current location ${currentLocation.value}")
 
     return currentLocation.value
 }
