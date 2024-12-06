@@ -22,18 +22,21 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.example.notes.data.getNearestPlaces
+import com.example.notes.models.UserViewModel
 import com.google.android.libraries.places.api.model.Place
 
 @SuppressLint("NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteScreen(navController: NavController) {
+fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
     var noteText by remember { mutableStateOf("") }
     var selectedNoteType by remember { mutableStateOf("Daily Note") }
     var isPublic by remember { mutableStateOf(true) }
-    val username = "Cristina Semikina" // Beispiel-Benutzername
     val db = Firebase.firestore // Firebase Firestore-Referenz
     val maxNoteLength = 220 // max words
+
+    var username by remember { mutableStateOf("Loading...") }
+
 
     // to access nearest place from current location
     val context = LocalContext.current
@@ -48,6 +51,15 @@ fun NoteScreen(navController: NavController) {
         val places = getNearestPlaces(context)
         //Log.i("Location", "places count ${places.size}")
         nearestPlace.value = places[0]
+    }
+
+    LaunchedEffect(userViewModel.userUID.value) {
+        val uid = userViewModel.userUID.value
+        if (!uid.isNullOrBlank()) {
+            userViewModel.loadUserProfile(uid) { user ->
+                username = user.username
+            }
+        }
     }
 
 
@@ -224,7 +236,7 @@ fun NoteScreen(navController: NavController) {
                             .add(note)
                             .addOnSuccessListener {
                                 // Erfolgreiches Hinzufügen
-                                navController.navigate("noteOverview")
+                                navController.navigate("home")
                             }
                             .addOnFailureListener { exception ->
                                 println("Error saving note: $exception")
