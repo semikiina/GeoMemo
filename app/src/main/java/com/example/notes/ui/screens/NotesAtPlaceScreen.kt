@@ -35,7 +35,6 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
     var isLoading by remember { mutableStateOf(true) }
     val db = Firebase.firestore
 
-    // Funktion zum Löschen der abgelaufenen Notizen
     suspend fun deleteExpiredNotes(loadedNotes: List<Note>) {
         val currentTime = System.currentTimeMillis()
         val expiredNotes = loadedNotes.filter { it.expirationTime < currentTime }
@@ -50,7 +49,6 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
         }
     }
 
-    // Daten laden und validieren
     LaunchedEffect(placeId) {
         isLoading = true
 
@@ -72,7 +70,6 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
                         deleteExpiredNotes(loadedNotes)
                     }
 
-                    // Nur gültige Notizen anzeigen
                     notes = loadedNotes.filter { it.expirationTime >= System.currentTimeMillis() }
                     Log.i("NotesAtPlaceScreen", "Loaded ${notes.size} valid notes")
                 } else {
