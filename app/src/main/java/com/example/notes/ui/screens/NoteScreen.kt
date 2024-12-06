@@ -1,6 +1,8 @@
 package com.example.notes.ui.screens
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.location.LocationManager
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -214,6 +216,10 @@ fun NoteScreen(navController: NavController, userViewModel: UserViewModel) {
                             else -> System.currentTimeMillis()
                         }
 
+                        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                        val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                        val latitude = location?.latitude ?: 0.0
+                        val longitude = location?.longitude ?: 0.0
                         // Note object with username and location included
                         val note = Note(
                             noteText = noteText,
@@ -225,8 +231,8 @@ fun NoteScreen(navController: NavController, userViewModel: UserViewModel) {
                             expirationTime = expirationTime,
                             placeName = nearestPlace.value.displayName ?: "Unknown",
                             placeId = nearestPlace.value.id ?: "Unknown",
-                            //latitude = nearestPlace.value.latLng?.latitude ?: 0.0,
-                            //longitude = nearestPlace.value.latLng?.longitude ?: 0.0
+                            latitude = latitude,
+                            longitude = longitude
                         )
 
                         db.collection("notes")

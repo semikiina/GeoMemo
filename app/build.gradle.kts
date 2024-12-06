@@ -66,6 +66,8 @@ dependencies {
     implementation("io.coil-kt:coil-svg:2.3.0")
     implementation ("androidx.compose.runtime:runtime-livedata:1.x.x")
 
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4")
+
 
     // Navigation und Firebase
     implementation(libs.androidx.core.ktx)

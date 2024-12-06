@@ -1,6 +1,6 @@
 package com.example.notes.ui.screens
 
-import android.util.Log
+
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,9 +17,6 @@ import com.google.firebase.ktx.Firebase
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.notes.components.BottomNavigationBar
 import com.example.notes.components.MainScreenMap
 import com.example.notes.utils.Screen

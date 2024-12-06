@@ -10,6 +10,8 @@ data class Note(
     val expirationTime: Long = 0L,
     val placeName: String = "",
     val placeId: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 ) {
 
 }
