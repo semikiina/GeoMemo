@@ -21,12 +21,11 @@ import androidx.navigation.NavController
 import com.example.notes.components.NoteCard
 import com.example.notes.models.Note
 import com.google.firebase.Firebase
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,11 +35,28 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
     var isLoading by remember { mutableStateOf(true) }
     val db = Firebase.firestore
 
+    // Funktion zum Löschen der abgelaufenen Notizen
+    suspend fun deleteExpiredNotes(loadedNotes: List<Note>) {
+        val currentTime = System.currentTimeMillis()
+        val expiredNotes = loadedNotes.filter { it.expirationTime < currentTime }
+
+        expiredNotes.forEach { note ->
+            try {
+                db.collection("notes").document(note.placeId).delete().await()
+                Log.i("NotesAtPlaceScreen", "Deleted expired note with placeId: ${note.placeId}")
+            } catch (e: Exception) {
+                Log.e("NotesAtPlaceScreen", "Error deleting expired note: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    // Daten laden und validieren
     LaunchedEffect(placeId) {
         isLoading = true
+
         db.collection("notes")
             .whereEqualTo("placeId", placeId)
-            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, exception ->
                 if (exception != null) {
                     Log.e("NotesAtPlaceScreen", "Error loading notes: $exception")
@@ -49,8 +65,16 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
                 }
 
                 if (snapshot != null && !snapshot.isEmpty) {
-                    notes = snapshot.documents.map { it.toObject(Note::class.java) ?: Note() }
-                    Log.i("NotesAtPlaceScreen", "Loaded ${notes.size} notes")
+                    val loadedNotes = snapshot.documents.mapNotNull { it.toObject(Note::class.java) }
+
+
+                    kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                        deleteExpiredNotes(loadedNotes)
+                    }
+
+                    // Nur gültige Notizen anzeigen
+                    notes = loadedNotes.filter { it.expirationTime >= System.currentTimeMillis() }
+                    Log.i("NotesAtPlaceScreen", "Loaded ${notes.size} valid notes")
                 } else {
                     notes = emptyList()
                     Log.i("NotesAtPlaceScreen", "No notes found for placeId: $placeId")
@@ -59,10 +83,10 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
             }
     }
 
-    Scaffold (
+    Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text ("Notes at place")},
+                title = { Text("Notes at place") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
@@ -96,25 +120,5 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
                 }
             }
         }
-    }
-}
-
-suspend fun loadNotesAtPlace(
-    db: FirebaseFirestore,
-    callback: (List<Note>?, Exception?) -> Unit
-) {
-    try {
-        val snapshot = withContext(Dispatchers.IO) {
-            db.collection("notes")
-                .whereGreaterThan("expirationTime", System.currentTimeMillis())
-                .orderBy("expirationTime", Query.Direction.ASCENDING)
-                .get()
-                .await()
-        }
-
-        val notes = snapshot.documents.mapNotNull { it.toObject(Note::class.java) }
-        callback(notes, null)
-    } catch (e: Exception) {
-        callback(null, e)
     }
 }
