@@ -103,7 +103,7 @@ fun MainScreenMap(navController: NavController) {
 
 
                     notes = groupedNotes.mapValues { it.value.size }
-                    Log.i("MainScreenMap", "Updated notes: ${notes.size} locations")
+                    //Log.i("MainScreenMap", "Updated notes: ${notes.size} locations")
                 }
             }
     }
@@ -131,7 +131,7 @@ fun MainScreenMap(navController: NavController) {
 
 
                         circleCenter.value = LatLng(lat, lng)
-                        Log.i("Location", "Location changed: Latitude=$lat, Longitude=$lng")
+                        //Log.i("Location", "Location changed: Latitude=$lat, Longitude=$lng")
                     }
                 }
             }

@@ -63,7 +63,7 @@ suspend fun getNearestPlaces(context: Context): List<Place> {
 
     val searchNearbyRequest =
         SearchNearbyRequest.builder(circle, placesField)
-            .setMaxResultCount(5)
+            .setMaxResultCount(1)                       // returns just one nearest location
             .build()
 
     return try {
@@ -73,7 +73,17 @@ suspend fun getNearestPlaces(context: Context): List<Place> {
             .addOnSuccessListener { response ->
                 val places = response.places
                 /*
+                Log.i("Location", "UNSORTED")
                 places.forEach{ place ->
+                    place.displayName.let { Log.i( "Location", it.toString()) }
+                }
+                val sortedPlaces = places.sortedBy { place ->
+                    (place.latLng?.let { latLng ->
+                        calculateDistance(center, latLng)
+                    } ?: Double.MAX_VALUE) as Comparable<Any> // Handle null latLng gracefully
+                }
+                Log.i("Location", "SORTED")
+                sortedPlaces.forEach{ place ->
                     place.displayName.let { Log.i( "Location", it.toString()) }
                 }
                  */
@@ -90,3 +100,16 @@ suspend fun getNearestPlaces(context: Context): List<Place> {
     }
 }
 
+fun calculateDistance(from: LatLng, to: LatLng): Float {
+    val results = FloatArray(1)
+    android.location.Location.distanceBetween(
+        from.latitude,
+        from.longitude,
+        to.latitude,
+        to.longitude,
+        results
+    )
+
+    val distance = results[0] // Distance in meters
+    return distance
+}
