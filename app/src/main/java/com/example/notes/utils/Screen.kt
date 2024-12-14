@@ -21,4 +21,10 @@ sealed class Screen (val route : String){
             return "notesAtPlace/$placeId"
         }
     }
+
+    object UserProfile : Screen("userProfile/{userId}") {
+        fun createRoute(userId: String): String {
+            return "userProfile/$userId"
+        }
+    }
 }

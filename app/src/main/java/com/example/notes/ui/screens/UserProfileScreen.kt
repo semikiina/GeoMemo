@@ -34,31 +34,23 @@ import com.example.notes.models.Note
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController, viewModel: UserViewModel = UserViewModel()) {
-    val userUID by viewModel.userUID.observeAsState(initial = null)
+fun UserProfileScreen(navController: NavController, userId: String) {
+    var isLoading by remember { mutableStateOf(true) }
     var avatarUrl by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
-    var userNotes by remember { mutableStateOf<List<Note>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
+    var viewModel = UserViewModel()
 
-    LaunchedEffect(userUID) {
-        Log.d("ProfileScreen", "Received userUID: $userUID")
-        val currentUID = userUID // Create a local copy
-        if (currentUID != null) { // Use the local copy
-            Log.d("ProfileScreen", "Current userUID: $currentUID")
-            viewModel.loadUserProfile(currentUID) { userProfile ->
-                Log.d("ProfileScreen", "Loaded user profile: $userProfile")
-                avatarUrl = userProfile.avatarUrl
-                name = userProfile.name
-                username = userProfile.username
-                isLoading = false
-            }
-            viewModel.getUserNotes(currentUID) { notes ->
-                userNotes = notes
-            }
-        }
+
+    viewModel.loadUserProfile(userId) { userProfile ->
+        avatarUrl = userProfile.avatarUrl
+        name = userProfile.name
+        username = userProfile.username
+        isLoading = false
     }
+
+
+
     // Conditional rendering
     if (isLoading) {
         Box(
@@ -132,32 +124,6 @@ fun ProfileScreen(navController: NavController, viewModel: UserViewModel = UserV
                     textAlign = TextAlign.Center
                 )
 
-                Text(
-                    text = "${userNotes.size} Notes created",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(top = 16.dp),
-                    fontWeight = FontWeight.Bold
-                )
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                ) {
-                    Text(
-                        text = "Your Private Notes",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 20.dp)
-                    )
-                    LazyColumn {
-                        items(userNotes) { note ->
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                NoteCard(note, navController)
-                            }
-                        }
-                    }
-                }
             }
         }
     }

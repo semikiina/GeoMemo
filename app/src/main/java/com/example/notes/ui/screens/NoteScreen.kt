@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.navigation.NavController
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.shadow
 import com.example.notes.models.Note
 import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.Firebase
@@ -23,6 +24,7 @@ import java.util.Date
 import java.util.Locale
 import com.example.notes.data.getNearestPlaces
 import com.example.notes.models.UserViewModel
+import com.google.android.libraries.places.api.model.AddressComponents
 import com.google.android.libraries.places.api.model.Place
 
 @SuppressLint("NewApi")
@@ -44,6 +46,7 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
         Place.builder()
             .setDisplayName("no name")
             .setId("no id")
+            .setAdrFormatAddress("no address")
             .build()
     ) }
     LaunchedEffect(Unit) {
@@ -51,6 +54,7 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
         val places = getNearestPlaces(context)
         //Log.i("Location", "places count ${places.size}")
         nearestPlace.value = places[0]
+        Log.i("Location", "nearest place ${nearestPlace.value.adrFormatAddress}")
     }
 
     LaunchedEffect(userViewModel.userUID.value) {
@@ -95,9 +99,18 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                 Box(modifier = Modifier.weight(1f)) {
                     OutlinedButton(
                         onClick = { expanded = true },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Blue,
+                        ) ,
                     ) {
-                        Text(selectedNoteType)
+                        Text(
+                            text=selectedNoteType,
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
                     }
                     DropdownMenu(
                         expanded = expanded,
@@ -106,7 +119,11 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                         val noteTypes = listOf("Daily Note", "Weekly Note", "Monthly Note")
                         noteTypes.forEach { type ->
                             DropdownMenuItem(
-                                text = { Text(type) },
+                                text = { Text(
+                                    text = type,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(vertical = 5.dp)
+                                ) },
                                 onClick = {
                                     selectedNoteType = type
                                     expanded = false
@@ -127,39 +144,44 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                 Switch(
                     checked = isPublic,
                     onCheckedChange = { isPublic = it },
-                    modifier = Modifier.align(Alignment.CenterVertically)
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.Blue,
+                        checkedTrackColor = Color.LightGray
+                    )
                 )
             }
             Text(
                 text = "Your Location",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(bottom = 8.dp)
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(top = 16.dp),
+                fontWeight = FontWeight.Bold,
+                color = Color.Blue
             )
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(
-                            text = "location",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-                        )
-                        Text(
-                            text = nearestPlace.value.displayName.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Text(
-                            text = nearestPlace.value.id.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
 
+                        Text(
+                            text = nearestPlace.value.displayName,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "📍 Address of the place, e.g. Street",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
                     }
                     Icon(
                         imageVector = Icons.Default.LocationOn,
@@ -172,8 +194,10 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
             // Eingabefeld für die Notiz
             Text(
                 text = "Your Note",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(bottom = 8.dp)
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(top = 16.dp),
+                fontWeight = FontWeight.Bold,
+                color = Color.Blue
             )
 
             OutlinedTextField(
@@ -188,6 +212,7 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
+                    .shadow(elevation = 4.dp)
             )
 
 
@@ -195,7 +220,8 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
             Text(
                 text = "${maxNoteLength - noteText.length} characters remaining",
                 style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 8.dp),
+                color = if(noteText.length == maxNoteLength) Color.Red else Color.Gray
             )
 
 
@@ -222,21 +248,19 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                             noteText = noteText,
                             type = selectedNoteType,
                             visibility = visibility,
+                            uid = userViewModel.userUID.value ?: "",
                             username = username,
                             timestamp = System.currentTimeMillis(),
                             date = noteDate,
                             expirationTime = expirationTime,
                             placeName = nearestPlace.value.displayName ?: "Unknown",
                             placeId = nearestPlace.value.id ?: "Unknown",
-                            latitude = nearestPlace.value.latLng?.latitude ?: 0.0,
-                            longitude = nearestPlace.value.latLng?.longitude ?: 0.0
                         )
 
 
                         db.collection("notes")
                             .add(note)
                             .addOnSuccessListener {
-
                                 navController.navigate("home")
                             }
                             .addOnFailureListener { exception ->

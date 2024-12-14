@@ -1,5 +1,7 @@
 package com.example.notes.ui.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -22,6 +24,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteOverviewScreen(navController: NavController) {
@@ -76,7 +79,7 @@ fun NoteOverviewScreen(navController: NavController) {
             // Liste der Notizen anzeigen
             LazyColumn(modifier = Modifier.padding(paddingValues)) {
                 items(notes) { note ->
-                    NoteCard(note = note)
+                    NoteCard(note = note, navController = navController)
                 }
             }
         }

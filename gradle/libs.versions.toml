@@ -24,6 +24,7 @@ googleplayservicemaps="19.0.0"
 googleMapsCompose="4.1.1"
 googleplayservicelocation = "21.3.0"
 googleSecrets="2.0.1"
+material = "1.12.0"
 
 [libraries]
 androidx-activity-compose-v172 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
@@ -54,6 +55,7 @@ google-gms-play-services-location={group="com.google.android.gms",name="play-ser
 google-play-services-maps={group="com.google.android.gms",name="play-services-maps",version.ref="googleplayservicemaps"}
 places = { module = "com.google.android.libraries.places:places", version.ref = "places" }
 play-services-basement = { module = "com.google.android.gms:play-services-basement", version.ref = "playServicesBasement" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 
 [plugins]

@@ -1,5 +1,6 @@
 package com.example.notes.ui.screens
 
+import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,6 +55,7 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
 
         db.collection("notes")
             .whereEqualTo("placeId", placeId)
+            .whereEqualTo("visibility", "Public")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, exception ->
                 if (exception != null) {
@@ -116,7 +118,10 @@ fun NotesAtPlaceScreen(placeId: String, navController: NavController) {
         } else {
             LazyColumn(modifier = Modifier.padding(paddingValues)) {
                 items(notes) { note ->
-                    NoteCard(note = note)
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        NoteCard(note = note, navController = navController)
+                    }
                 }
             }
         }

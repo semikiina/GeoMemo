@@ -86,6 +86,7 @@ fun MainScreenMap(navController: NavController) {
 
     LaunchedEffect(Unit) {
         listenerRegistration = db.collection("notes")
+            .whereEqualTo("visibility", "Public")
             .addSnapshotListener { snapshot, exception ->
                 if (exception != null) {
                     Log.e("MainScreenMap", "Error listening to notes: ${exception.localizedMessage}")

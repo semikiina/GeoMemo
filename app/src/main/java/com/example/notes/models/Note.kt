@@ -1,6 +1,7 @@
 package com.example.notes.models
 
 data class Note(
+    val uid: String = "",
     val id: String = "",
     val noteText: String = "",
     val type: String = "",

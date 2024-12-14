@@ -104,4 +104,28 @@ class UserViewModel : ViewModel() {
                 Log.e("UserViewModel", "Error loading user profile: $exception")
             }
     }
+
+    fun getUser(uid: String, onUserLoaded: (User) -> Unit) {
+        db.collection("users")
+            .document(uid)
+            .get()
+            .addOnSuccessListener { document ->
+                val user = document.toObject(User::class.java)
+                if (user != null) {
+                    onUserLoaded(user)
+                }
+            }
+    }
+
+    fun getUserNotes(uid: String, onNotesLoaded: (List<Note>) -> Unit) {
+        db.collection("notes")
+            .whereEqualTo("uid", uid)
+            .get()
+            .addOnSuccessListener { documents ->
+                val notes = documents.mapNotNull { it.toObject(Note::class.java) }
+                Log.d("UserViewModel", "User notes loaded: $notes")
+                onNotesLoaded(notes)
+            }
+
+    }
 }

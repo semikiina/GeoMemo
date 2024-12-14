@@ -15,6 +15,7 @@ import com.example.notes.ui.screens.NoteScreen
 import com.example.notes.ui.screens.NotesAtPlaceScreen
 import com.example.notes.ui.screens.ProfileScreen
 import com.example.notes.ui.screens.RegisterScreen
+import com.example.notes.ui.screens.UserProfileScreen
 
 @Composable
 fun Navigation() {
@@ -56,9 +57,18 @@ fun Navigation() {
         composable(route = Screen.NotesAtPlace.route) {
             val placeId = it.arguments?.getString("placeId")
             if (placeId != null) {
-                NotesAtPlaceScreen(placeId = placeId, navController = navController)
+                NotesAtPlaceScreen(placeId = placeId,  navController = navController)
             } else {
                 Log.e("Location","Navigation: no placeId")
+            }
+        }
+
+        composable(route = Screen.UserProfile.route) {
+            val userId = it.arguments?.getString("userId")
+            if (userId != null) {
+                UserProfileScreen(userId = userId, navController = navController)
+            } else {
+                Log.e("Location","Navigation: no userId")
             }
         }
     }
