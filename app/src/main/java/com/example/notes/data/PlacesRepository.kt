@@ -59,7 +59,7 @@ suspend fun getNearestPlaces(context: Context): List<Place> {
     val placesClient: PlacesClient = Places.createClient(context)
     val center = getCurrentLocation(context)
     val circle = CircularBounds.newInstance(center, 100.0)
-    val placesField = listOf(Place.Field.ID, Place.Field.DISPLAY_NAME, Place.Field.LAT_LNG)
+    val placesField = listOf(Place.Field.ID, Place.Field.DISPLAY_NAME, Place.Field.LAT_LNG, Place.Field.FORMATTED_ADDRESS)
 
     val searchNearbyRequest =
         SearchNearbyRequest.builder(circle, placesField)

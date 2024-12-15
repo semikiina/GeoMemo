@@ -173,15 +173,19 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                 ) {
                     Column {
 
-                        Text(
-                            text = nearestPlace.value.displayName,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "📍 Address of the place, e.g. Street",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
+                        nearestPlace.value.displayName?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        nearestPlace.value.formattedAddress?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
                     }
                     Icon(
                         imageVector = Icons.Default.LocationOn,
