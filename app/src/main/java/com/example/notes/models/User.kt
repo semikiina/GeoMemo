@@ -120,6 +120,7 @@ class UserViewModel : ViewModel() {
     fun getUserNotes(uid: String, onNotesLoaded: (List<Note>) -> Unit) {
         db.collection("notes")
             .whereEqualTo("uid", uid)
+            .whereEqualTo("visibility", "Privat")
             .get()
             .addOnSuccessListener { documents ->
                 val notes = documents.mapNotNull { it.toObject(Note::class.java) }
