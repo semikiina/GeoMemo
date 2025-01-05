@@ -94,20 +94,29 @@ fun MainScreenMap(navController: NavController) {
                 }
 
                 if (snapshot != null) {
+                    Log.i("MainScreenMap", "Snapshot loaded: ${snapshot.size()} documents")
 
                     val groupedNotes = snapshot.documents.groupBy {
                         val latitude = it.getDouble("latitude")
                         val longitude = it.getDouble("longitude")
-                        if (latitude != null && longitude != null) LatLng(latitude, longitude) else null
+
+                        if (latitude != null && longitude != null) {
+                            val position = LatLng(latitude, longitude)
+                            Log.i("MainScreenMap", "Note position: $position")
+                            position
+                        } else {
+                            Log.e("MainScreenMap", "Invalid coordinates for document: ${it.id}")
+                            null
+                        }
                     }.filterKeys { it != null }
                         .mapKeys { it.key!! }
 
-
                     notes = groupedNotes.mapValues { it.value.size }
-                    //Log.i("MainScreenMap", "Updated notes: ${notes.size} locations")
+                    Log.i("MainScreenMap", "Updated notes: ${notes.size} locations")
                 }
             }
     }
+
 
     DisposableEffect(Unit) {
         onDispose {
@@ -180,7 +189,8 @@ fun MainScreenMap(navController: NavController) {
                 title = "Notes: $noteCount",
                 icon = com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
                     com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_RED
-                )
+                ),
+                zIndex = 1f
             )
         }
     }

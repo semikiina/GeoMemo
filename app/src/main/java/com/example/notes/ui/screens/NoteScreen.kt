@@ -3,29 +3,28 @@ package com.example.notes.ui.screens
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.navigation.NavController
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import com.example.notes.models.Note
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.notes.data.getNearestPlaces
+import com.example.notes.models.Note
+import com.example.notes.models.UserViewModel
+import com.google.android.libraries.places.api.model.Place
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.example.notes.data.getNearestPlaces
-import com.example.notes.models.UserViewModel
-import com.google.android.libraries.places.api.model.AddressComponents
-import com.google.android.libraries.places.api.model.Place
 
 @SuppressLint("NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -167,7 +166,9 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -247,6 +248,9 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                             else -> System.currentTimeMillis()
                         }
 
+                        val latitude = nearestPlace.value.latLng?.latitude ?: 0.0
+                        val longitude = nearestPlace.value.latLng?.longitude ?: 0.0
+
 
                         val note = Note(
                             noteText = noteText,
@@ -259,6 +263,8 @@ fun NoteScreen(navController: NavController,  userViewModel: UserViewModel) {
                             expirationTime = expirationTime,
                             placeName = nearestPlace.value.displayName ?: "Unknown",
                             placeId = nearestPlace.value.id ?: "Unknown",
+                            latitude = latitude,
+                            longitude = longitude
                         )
 
 
